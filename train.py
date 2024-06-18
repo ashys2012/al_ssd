@@ -31,6 +31,7 @@ import torch
 import matplotlib.pyplot as plt
 import time
 import os
+from new_model import create_dropout_model
 
 # torch.multiprocessing.set_sharing_strategy('file_system')
 
@@ -56,9 +57,9 @@ def train(train_data_loader, model):
         images = list(image.to(DEVICE) for image in images)
         targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
         loss_dict = model(images, targets)
-        print("loss_dict: ", loss_dict)
-        print("loss_dict.values(): ", loss_dict.values())
-        print("shape of loss_dict.values(): ", len(loss_dict.values()))
+        # print("loss_dict: ", loss_dict)
+        # print("loss_dict.values(): ", loss_dict.values())
+        # print("shape of loss_dict.values(): ", len(loss_dict.values()))
 
         losses = sum(loss for loss in loss_dict.values())
         loss_value = losses.item()
@@ -119,7 +120,7 @@ if __name__ == '__main__':
     print(f"Number of validation samples: {len(valid_dataset)}\n")
 
     # Initialize the model and move to the computation device.
-    model = create_model(num_classes=NUM_CLASSES, size=RESIZE_TO)
+    model = create_dropout_model(num_classes=NUM_CLASSES, size=RESIZE_TO, dropout_rate=0.3)
     model = model.to(DEVICE)
     #print(model)
     # Total parameters and trainable parameters.
