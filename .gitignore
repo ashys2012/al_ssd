@@ -19,6 +19,10 @@
 */outputs
 */outputs/*
 /outputs/*
+outputs/*
+outputs/
+/home/achazhoor/Documents/2024/ssd/outputs/best_model.pth
+/home/achazhoor/Documents/2024/ssd/outputs/last_model.pth
 /home/achazhoor/Documents/2024/ssd/outputs/*
 /home/achazhoor/Documents/2024/ssd/data/archive.zip
 /home/achazhoor/Documents/2024/ssd/__pycache__/
