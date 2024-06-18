@@ -1,0 +1,22 @@
+# .gitignore
+/home/achazhoor/Documents/2024/ssd/data
+/home/achazhoor/Documents/2024/ssd/data/actual
+/home/achazhoor/Documents/2024/ssd/data/Train
+/home/achazhoor/Documents/2024/ssd/data/Val
+/home/achazhoor/Documents/2024/ssd/data/actual/*
+/home/achazhoor/Documents/2024/ssd/data/Train/*
+/home/achazhoor/Documents/2024/ssd/data/Val/*
+*/data/actual
+*/data/Train
+*/data/Val
+*/data/actual/*
+*/data/Train/*
+*/data/Val/*
+/data/actual/*
+/data/Train/*
+/data/Val/*
+/home/achazhoor/Documents/2024/ssd/outputs
+*/outputs
+*/outputs/*
+/outputs/*
+/home/achazhoor/Documents/2024/ssd/outputs/*
