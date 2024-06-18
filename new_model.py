@@ -1,3 +1,9 @@
+"""
+We have created a model with dropout layers in the classification and regression heads.
+This is an extension of the SSD model from torchvision.
+
+"""
+
 import torch
 from torch import nn
 import torchvision

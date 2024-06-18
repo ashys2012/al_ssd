@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 from new_model import create_dropout_model
-
+import numpy as np
 # torch.multiprocessing.set_sharing_strategy('file_system')
 
 plt.style.use('ggplot')
@@ -56,7 +56,7 @@ def train(train_data_loader, model):
         
         images = list(image.to(DEVICE) for image in images)
         targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
-        loss_dict = model(images, targets)
+        loss_dict = model(images, targets) 
         # print("loss_dict: ", loss_dict)
         # print("loss_dict.values(): ", loss_dict.values())
         # print("shape of loss_dict.values(): ", len(loss_dict.values()))
@@ -109,6 +109,67 @@ def validate(valid_data_loader, model):
     metric.update(preds, target)
     metric_summary = metric.compute()
     return metric_summary
+
+
+#here we add the new validaiton loop with dropout enabled
+import torch.nn as nn
+import torch
+import torch.nn as nn
+import numpy as np
+import sys
+
+def enable_dropout(model):
+    """Enable dropout layers during test-time for uncertainty estimation."""
+    for module in model.modules():
+        if isinstance(module, nn.Dropout):
+            module.train()
+
+def mc_dropout_ssd(data_loader, model, forward_passes):
+    """Perform MC Dropout to estimate uncertainty in SSD model predictions."""
+    all_predictions = []
+    model.eval()
+    enable_dropout(model)
+
+    for _ in range(forward_passes):
+        predictions = []
+        for images, _ in data_loader:
+            images = list(image.to(DEVICE) for image in images)
+            with torch.no_grad():
+                outputs = model(images)
+            for output in outputs:
+                if 'scores' in output:
+                    probs = output['scores'].cpu().numpy()
+                    predictions.append(probs)
+
+        predictions = np.vstack(predictions)
+        all_predictions.append(predictions)
+
+    # Convert list to NumPy array for easier manipulation
+    all_predictions = np.array(all_predictions)
+
+    # Calculate mean probability across forward passes
+    mean_probs = np.mean(all_predictions, axis=0)
+
+    # Calculate entropy
+    epsilon = sys.float_info.min
+    entropy_per_prediction = -np.sum(mean_probs * np.log(mean_probs + epsilon), axis=1)
+
+    # To average entropy over predictions for each image if needed
+    entropy_per_image = np.split(entropy_per_prediction, len(data_loader.dataset))
+    average_entropy_per_image = [np.mean(entropy) for entropy in entropy_per_image]
+
+    return average_entropy_per_image
+
+
+
+def set_dropout_mode(model, mode):
+    for module in model.modules():
+        if isinstance(module, nn.Dropout):
+            if mode == 'train':
+                module.train()
+            else:
+                module.eval()
+
 
 if __name__ == '__main__':
     os.makedirs('outputs', exist_ok=True)
@@ -166,9 +227,13 @@ if __name__ == '__main__':
         start = time.time()
         train_loss = train(train_loader, model)
         metric_summary = validate(valid_loader, model)
+        entropy = mc_dropout_ssd(valid_loader, model, forward_passes=10)
+    
+
         print(f"Epoch #{epoch+1} train loss: {train_loss_hist.value:.3f}")   
         print(f"Epoch #{epoch+1} mAP@0.50:0.95: {metric_summary['map']}")
-        print(f"Epoch #{epoch+1} mAP@0.50: {metric_summary['map_50']}")   
+        print(f"Epoch #{epoch+1} mAP@0.50: {metric_summary['map_50']}")
+        print("Entropy of predictions:", entropy)
         end = time.time()
         print(f"Took {((end - start) / 60):.3f} minutes for epoch {epoch}")
 
